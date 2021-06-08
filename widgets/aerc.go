@@ -577,13 +577,11 @@ func (aerc *Aerc) AddDialog(d ui.DrawableInteractive) {
 		aerc.Invalidate()
 	})
 	aerc.Invalidate()
-	return
 }
 
 func (aerc *Aerc) CloseDialog() {
 	aerc.dialog = nil
 	aerc.Invalidate()
-	return
 }
 
 func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, chErr chan error) {
@@ -601,7 +599,6 @@ func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, 
 		}
 		chErr <- nil
 		chText <- pw
-		return
 	})
 	aerc.AddDialog(getPasswd)
 

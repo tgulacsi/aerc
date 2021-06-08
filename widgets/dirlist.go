@@ -12,7 +12,6 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
-	libsort "git.sr.ht/~sircmpwn/aerc/lib/sort"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -453,18 +452,6 @@ func findString(slice []string, str string) int {
 		}
 	}
 	return -1
-}
-
-func (dirlist *DirectoryList) getSortCriteria() []*types.SortCriterion {
-	if len(dirlist.UiConfig().Sort) == 0 {
-		return nil
-	}
-	criteria, err := libsort.GetSortCriteria(dirlist.UiConfig().Sort)
-	if err != nil {
-		dirlist.logger.Printf("getSortCriteria failed: %v", err)
-		return nil
-	}
-	return criteria
 }
 
 func countRUE(msgStore *lib.MessageStore) (recent, unread int) {

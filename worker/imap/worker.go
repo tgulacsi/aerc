@@ -64,6 +64,10 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	if w.idleStop != nil {
 		close(w.idleStop)
 		if err := <-w.idleDone; err != nil {
+			w.worker.Logger.Printf("IMAPWorker(%p) idleDone got %+v", w, err)
+			if err.Error() == "imap: connection closed" {
+				w.worker.PostAction(&types.Connect{}, nil)
+			}
 			w.worker.PostMessage(&types.Error{Error: err}, nil)
 		}
 	}
@@ -73,6 +77,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	switch msg := msg.(type) {
 	case *types.Unsupported:
 		// No-op
+	case *types.Error:
+		w.worker.Logger.Printf("IMAPWorker(%p) got %#v", w, msg)
 	case *types.Configure:
 		u, err := url.Parse(msg.Config.Source)
 		if err != nil {
@@ -157,6 +163,9 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 
 		c.Updates = w.updates
+		if w.client != nil {
+			w.client.Close()
+		}
 		w.client = &imapClient{c, idle.NewClient(c), sortthread.NewSortClient(c)}
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:

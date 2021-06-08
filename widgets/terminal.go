@@ -133,7 +133,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 				return
 			}
 			term.writeMutex.Lock()
-			n, err = term.vterm.Write(buf[:n])
+			_, err = term.vterm.Write(buf[:n])
 			term.writeMutex.Unlock()
 			if err != nil {
 				term.Close(err)
@@ -163,7 +163,7 @@ func (term *Terminal) flushTerminal() {
 		if n == 0 {
 			break
 		}
-		n, err = term.pty.Write(buf[:n])
+		_, err = term.pty.Write(buf[:n])
 		if err != nil {
 			term.Close(err)
 			return

@@ -756,17 +756,9 @@ func (he *headerEditor) storeValue() {
 			// fix the issue
 			he.header.SetText(he.name, val)
 		}
-		val = format.FormatAddresses(list)
 	default:
 		he.header.SetText(he.name, val)
 	}
-}
-
-//setValue overwrites the current value of the header editor and flushes it
-//to the underlying header
-func (he *headerEditor) setValue(val string) {
-	he.input.Set(val)
-	he.storeValue()
 }
 
 func (he *headerEditor) Draw(ctx *ui.Context) {

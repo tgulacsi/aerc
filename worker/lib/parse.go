@@ -102,7 +102,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	return &body, nil
 }
 
-var DateParseError = errors.New("date parsing failed")
+var ErrDateParse = errors.New("date parsing failed")
 
 func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	from, err := parseAddressList(h, "from")
@@ -141,7 +141,7 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	if err != nil {
 		// still return a valid struct plus a sentinel date parsing error
 		// if only the date parsing failed
-		err = fmt.Errorf("%w: %v", DateParseError, err)
+		err = fmt.Errorf("%w: %v", ErrDateParse, err)
 	}
 	return &models.Envelope{
 		Date:      date,
@@ -237,7 +237,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	}
 	h := &mail.Header{msg.Header}
 	env, err := parseEnvelope(h)
-	if err != nil && !errors.Is(err, DateParseError) {
+	if err != nil && !errors.Is(err, ErrDateParse) {
 		return nil, fmt.Errorf("could not parse envelope: %v", err)
 		// if only the date parsing failed we still get the rest of the
 		// envelop structure in a valid state.

@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"strings"
+
 	"github.com/emersion/go-imap"
 	sortthread "github.com/emersion/go-imap-sortthread"
 
@@ -55,10 +57,14 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		uids, err = imapw.client.UidSearch(searchCriteria)
 	}
 	if err != nil {
+		imapw.worker.Logger.Printf("FetchDirectory error: %+v", err)
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
+		if strings.HasSuffix(err.Error(), "broken pipe") {
+			imapw.worker.PostAction(&types.Connect{}, nil)
+		}
 	} else {
 		imapw.worker.Logger.Printf("Found %d UIDs", len(uids))
 		if len(imapw.seqMap) < len(uids) {
