@@ -151,10 +151,7 @@ func isDirExists(path string) bool {
 //pathExists returns true if path exists
 func pathExists(path string) bool {
 	_, err := os.Stat(path)
-	if err != nil {
-		return false // we don't really care why it failed
-	}
-	return true
+	return err == nil // we don't really care why it failed
 }
 
 //isAbsPath returns true if path given is anchored to / or . or ~

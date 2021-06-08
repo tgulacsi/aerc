@@ -28,7 +28,6 @@ type Tabs struct {
 type Tab struct {
 	Content        Drawable
 	Name           string
-	invalid        bool
 	pinned         bool
 	indexBeforePin int
 }

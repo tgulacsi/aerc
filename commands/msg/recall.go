@@ -90,8 +90,6 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 					composer.Close()
 				}
 			})
-
-			return
 		})
 	}
 
