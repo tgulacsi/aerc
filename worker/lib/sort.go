@@ -93,18 +93,18 @@ func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCrit
 
 func sortFlags(messageInfos []*models.MessageInfo, criterion *types.SortCriterion,
 	testFlag models.Flag) {
-	var slice []*boolStore
-	for _, msgInfo := range messageInfos {
+	slice := make([]*boolStore, len(messageInfos))
+	for i, msgInfo := range messageInfos {
 		flagPresent := false
 		for _, flag := range msgInfo.Flags {
 			if flag == testFlag {
 				flagPresent = true
 			}
 		}
-		slice = append(slice, &boolStore{
+		slice[i] = &boolStore{
 			Value:   flagPresent,
 			MsgInfo: msgInfo,
-		})
+		}
 	}
 	sortSlice(criterion, slice, func(i, j int) bool {
 		valI, valJ := slice[i].Value, slice[j].Value
@@ -117,12 +117,12 @@ func sortFlags(messageInfos []*models.MessageInfo, criterion *types.SortCriterio
 
 func sortStrings(messageInfos []*models.MessageInfo, criterion *types.SortCriterion,
 	getValue func(*models.MessageInfo) string) {
-	var slice []*lexiStore
-	for _, msgInfo := range messageInfos {
-		slice = append(slice, &lexiStore{
+	slice := make([]*lexiStore, len(messageInfos))
+	for i, msgInfo := range messageInfos {
+		slice[i] = &lexiStore{
 			Value:   getValue(msgInfo),
 			MsgInfo: msgInfo,
-		})
+		}
 	}
 	sortSlice(criterion, slice, func(i, j int) bool {
 		return slice[i].Value < slice[j].Value

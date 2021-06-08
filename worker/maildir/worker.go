@@ -37,7 +37,7 @@ type Worker struct {
 func NewWorker(worker *types.Worker) (types.Backend, error) {
 	watch, err := fsnotify.NewWatcher()
 	if err != nil {
-		return nil, fmt.Errorf("could not create file system watcher: %v", err)
+		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
 	return &Worker{worker: worker, watcher: watch}, nil
 }
@@ -56,7 +56,7 @@ func (w *Worker) Run() {
 
 func (w *Worker) handleAction(action types.WorkerMessage) {
 	msg := w.worker.ProcessAction(action)
-	if err := w.handleMessage(msg); err == errUnsupported {
+	if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
 		w.worker.PostMessage(&types.Unsupported{
 			Message: types.RespondTo(msg),
 		}, nil)
@@ -105,7 +105,7 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 }
 
 func (w *Worker) done(msg types.WorkerMessage) {
-	w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 }
 
 func (w *Worker) err(msg types.WorkerMessage, err error) {
@@ -220,7 +220,7 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	if u.Host == "~" {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("could not resolve home directory: %v", err)
+			return fmt.Errorf("could not resolve home directory: %w", err)
 		}
 		dir = filepath.Join(home, u.Path)
 	}
@@ -282,7 +282,7 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	if w.selected != nil {
 		prevDir := filepath.Join(string(*w.selected), "new")
 		if err := w.watcher.Remove(prevDir); err != nil {
-			return fmt.Errorf("could not unwatch previous directory: %v", err)
+			return fmt.Errorf("could not unwatch previous directory: %w", err)
 		}
 	}
 
@@ -292,11 +292,11 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	// add watch path
 	newDir := filepath.Join(string(*w.selected), "new")
 	if err := w.watcher.Add(newDir); err != nil {
-		return fmt.Errorf("could not add watch to directory: %v", err)
+		return fmt.Errorf("could not add watch to directory: %w", err)
 	}
 
 	if err := dir.Clean(); err != nil {
-		return fmt.Errorf("could not clean directory: %v", err)
+		return fmt.Errorf("could not clean directory: %w", err)
 	}
 
 	info := &types.DirectoryInfo{
@@ -330,7 +330,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 	if len(criteria) == 0 {
 		return uids, nil
 	}
-	var msgInfos []*models.MessageInfo
+	msgInfos := make([]*models.MessageInfo, len(uids))
 	for _, uid := range uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {

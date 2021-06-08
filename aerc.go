@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -59,12 +60,14 @@ func execCommand(aerc *widgets.Aerc, ui *libui.UI, cmd []string) error {
 	cmds := getCommands((*aerc).SelectedTab())
 	for i, set := range cmds {
 		err := set.ExecuteCommand(aerc, cmd)
-		if _, ok := err.(commands.NoSuchCommand); ok {
+		var nsc commands.NoSuchCommand
+		var ee commands.ErrorExit
+		if errors.As(err, &nsc) {
 			if i == len(cmds)-1 {
 				return err
 			}
 			continue
-		} else if _, ok := err.(commands.ErrorExit); ok {
+		} else if errors.As(err, &ee) {
 			ui.Exit()
 			return nil
 		} else if err != nil {

@@ -2,6 +2,7 @@ package completer
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -82,14 +83,14 @@ func (c *Completer) completeAddress(s string) ([]string, error) {
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("stdout: %v", err)
+		return nil, fmt.Errorf("stdout: %w", err)
 	}
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("cmd start: %v", err)
+		return nil, fmt.Errorf("cmd start: %w", err)
 	}
 	completions, err := readCompletions(stdout)
 	if err != nil {
-		return nil, fmt.Errorf("read completions: %v", err)
+		return nil, fmt.Errorf("read completions: %w", err)
 	}
 
 	// Wait returns an error if the exit status != 0, which some completion
@@ -132,7 +133,7 @@ func readCompletions(r io.Reader) ([]string, error) {
 	completions := []string{}
 	for {
 		line, err := buf.ReadString('\n')
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return completions, nil
 		} else if err != nil {
 			return nil, err

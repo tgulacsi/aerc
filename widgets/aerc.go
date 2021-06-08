@@ -371,9 +371,9 @@ func (aerc *Aerc) SelectTabIndex(index int) bool {
 }
 
 func (aerc *Aerc) TabNames() []string {
-	var names []string
-	for _, tab := range aerc.tabs.Tabs {
-		names = append(names, tab.Name)
+	names := make([]string, len(aerc.tabs.Tabs))
+	for i, tab := range aerc.tabs.Tabs {
+		names[i] = tab.Name
 	}
 	return names
 }
@@ -502,7 +502,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	h := &mail.Header{}
 	to, err := mail.ParseAddressList(addr.Opaque)
 	if err != nil {
-		return fmt.Errorf("Could not parse to: %v", err)
+		return fmt.Errorf("Could not parse to: %w", err)
 	}
 	h.SetAddressList("to", to)
 	for key, vals := range addr.Query() {

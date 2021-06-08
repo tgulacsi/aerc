@@ -146,14 +146,16 @@ func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 	}
 }
 
+const cMultipart = "multipart"
+
 func enumerateParts(acct *AccountView, conf *config.AercConfig,
 	msg lib.MessageView, body *models.BodyStructure,
 	index []int) ([]*PartViewer, error) {
 
-	var parts []*PartViewer
+	parts := make([]*PartViewer, 0, len(body.Parts))
 	for i, part := range body.Parts {
 		curindex := append(index, i+1)
-		if part.MIMEType == "multipart" {
+		if part.MIMEType == cMultipart {
 			// Multipart meta-parts are faked
 			pv := &PartViewer{part: part}
 			parts = append(parts, pv)
@@ -205,7 +207,7 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 				switcher.Invalidate()
 			})
 			// Switch to user's preferred mimetype
-			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
+			if switcher.selected == -1 && pv.part.MIMEType != cMultipart {
 				switcher.selected = i
 			}
 			mime := strings.ToLower(pv.part.MIMEType) +
@@ -301,7 +303,7 @@ func (mv *MessageViewer) PreviousPart() {
 		if switcher.selected < 0 {
 			switcher.selected = len(switcher.parts) - 1
 		}
-		if switcher.parts[switcher.selected].part.MIMEType != "multipart" {
+		if switcher.parts[switcher.selected].part.MIMEType != cMultipart {
 			break
 		}
 	}
@@ -315,7 +317,7 @@ func (mv *MessageViewer) NextPart() {
 		if switcher.selected >= len(switcher.parts) {
 			switcher.selected = 0
 		}
-		if switcher.parts[switcher.selected].part.MIMEType != "multipart" {
+		if switcher.parts[switcher.selected].part.MIMEType != cMultipart {
 			break
 		}
 	}
@@ -385,7 +387,7 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
 				if localY != y+i {
 					continue
 				}
-				if ps.parts[i].part.MIMEType == "multipart" {
+				if ps.parts[i].part.MIMEType == cMultipart {
 					continue
 				}
 				if ps.parts[ps.selected].term != nil {

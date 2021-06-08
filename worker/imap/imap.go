@@ -24,9 +24,9 @@ func translateBodyStructure(bs *imap.BodyStructure) *models.BodyStructure {
 	if bs == nil {
 		return nil
 	}
-	var parts []*models.BodyStructure
-	for _, part := range bs.Parts {
-		parts = append(parts, translateBodyStructure(part))
+	parts := make([]*models.BodyStructure, len(bs.Parts))
+	for i, part := range bs.Parts {
+		parts[i] = translateBodyStructure(part)
 	}
 
 	// TODO: is that all?
@@ -69,12 +69,12 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 }
 
 func translateAddresses(addrs []*imap.Address) []*mail.Address {
-	var converted []*mail.Address
-	for _, addr := range addrs {
-		converted = append(converted, &mail.Address{
+	converted := make([]*mail.Address, len(addrs))
+	for i, addr := range addrs {
+		converted[i] = &mail.Address{
 			Name:    addr.PersonalName,
 			Address: addr.Address(),
-		})
+		}
 	}
 	return converted
 }

@@ -2,6 +2,7 @@ package imap
 
 import (
 	"fmt"
+
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -40,7 +41,7 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 			Message: types.RespondTo(msg),
 			Uids:    deleted,
 		}, nil)
-		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }
 
@@ -67,11 +68,11 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 	}, func(_msg types.WorkerMessage) {
 		switch m := _msg.(type) {
 		case *types.Error:
-			err := fmt.Errorf("handleAnsweredMessages: %v", m.Error)
+			err := fmt.Errorf("handleAnsweredMessages: %w", m.Error)
 			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
 			emitErr(err)
 		case *types.Done:
-			imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 		}
 	})
 }
@@ -98,11 +99,11 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 	}, func(_msg types.WorkerMessage) {
 		switch m := _msg.(type) {
 		case *types.Error:
-			err := fmt.Errorf("handleFlagMessages: %v", m.Error)
+			err := fmt.Errorf("handleFlagMessages: %w", m.Error)
 			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
 			emitErr(err)
 		case *types.Done:
-			imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 		}
 	})
 }

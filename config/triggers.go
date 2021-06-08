@@ -21,7 +21,7 @@ func (trig *TriggersConfig) ExecTrigger(triggerCmd string,
 		return err
 	}
 
-	var command []string
+	command := make([]string, 0, len(triggerCmdParts))
 	for _, part := range triggerCmdParts {
 		formattedPart, err := triggerFmt(part)
 		if err != nil {

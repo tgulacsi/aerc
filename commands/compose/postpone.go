@@ -82,7 +82,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 			Flags:       []models.Flag{models.SeenFlag},
 			Date:        time.Now(),
 			Reader:      r,
-			Length:      int(nbytes),
+			Length:      nbytes,
 		}, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:

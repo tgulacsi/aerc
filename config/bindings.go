@@ -101,7 +101,7 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 	buf := bytes.NewBufferString(keystrokes)
 	for {
 		tok, _, err := buf.ReadRune()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			return nil, err
@@ -111,7 +111,7 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 		switch tok {
 		case '<':
 			name, err := buf.ReadString(byte('>'))
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				return nil, errors.New("Expecting '>'")
 			} else if err != nil {
 				return nil, err

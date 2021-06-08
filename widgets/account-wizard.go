@@ -566,19 +566,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	wizard.aerc.RemoveTab(wizard)
 }
 
-func (wizard *AccountWizard) imapUri() url.URL {
-	host := wizard.imapServer.String()
-	user := wizard.imapUsername.String()
-	pass := wizard.imapPassword.String()
-	var scheme string
-	switch wizard.imapMode {
-	case IMAP_OVER_TLS:
-		scheme = "imaps"
-	case IMAP_STARTTLS:
-		scheme = "imap"
-	case IMAP_INSECURE:
-		scheme = "imap+insecure"
-	}
+func (wizard *AccountWizard) uriWithUserPassword(scheme, host, user, pass string) url.URL {
 	var (
 		userpass   *url.Userinfo
 		userwopass *url.Userinfo
@@ -602,11 +590,26 @@ func (wizard *AccountWizard) imapUri() url.URL {
 	}
 	wizard.imapStr.Text("Connection URL: " +
 		strings.ReplaceAll(clean.String(), "%2A", "*"))
-	wizard.imapUrl = uri
 	return uri
 }
 
-func (wizard *AccountWizard) smtpUri() url.URL {
+func (wizard *AccountWizard) imapUri() {
+	host := wizard.imapServer.String()
+	user := wizard.imapUsername.String()
+	pass := wizard.imapPassword.String()
+	var scheme string
+	switch wizard.imapMode {
+	case IMAP_OVER_TLS:
+		scheme = "imaps"
+	case IMAP_STARTTLS:
+		scheme = "imap"
+	case IMAP_INSECURE:
+		scheme = "imap+insecure"
+	}
+	wizard.imapUrl = wizard.uriWithUserPassword(scheme, host, user, pass)
+}
+
+func (wizard *AccountWizard) smtpUri() {
 	host := wizard.smtpServer.String()
 	user := wizard.smtpUsername.String()
 	pass := wizard.smtpPassword.String()
@@ -619,31 +622,7 @@ func (wizard *AccountWizard) smtpUri() url.URL {
 	case SMTP_INSECURE:
 		scheme = "smtp+plain"
 	}
-	var (
-		userpass   *url.Userinfo
-		userwopass *url.Userinfo
-	)
-	if pass == "" {
-		userpass = url.User(user)
-		userwopass = userpass
-	} else {
-		userpass = url.UserPassword(user, pass)
-		userwopass = url.UserPassword(user, strings.Repeat("*", len(pass)))
-	}
-	uri := url.URL{
-		Scheme: scheme,
-		Host:   host,
-		User:   userpass,
-	}
-	clean := url.URL{
-		Scheme: scheme,
-		Host:   host,
-		User:   userwopass,
-	}
-	wizard.smtpStr.Text("Connection URL: " +
-		strings.ReplaceAll(clean.String(), "%2A", "*"))
-	wizard.smtpUrl = uri
-	return uri
+	wizard.smtpUrl = wizard.uriWithUserPassword(scheme, host, user, pass)
 }
 
 func (wizard *AccountWizard) Invalidate() {

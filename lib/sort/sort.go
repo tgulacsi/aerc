@@ -10,7 +10,7 @@ import (
 )
 
 func GetSortCriteria(args []string) ([]*types.SortCriterion, error) {
-	var sortCriteria []*types.SortCriterion
+	sortCriteria := make([]*types.SortCriterion, 0, len(args))
 	reverse := false
 	for _, arg := range args {
 		if arg == "-r" {

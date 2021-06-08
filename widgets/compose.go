@@ -66,14 +66,14 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	if h == nil {
 		h = new(mail.Header)
 	}
-	if fl, err := h.AddressList("from"); err != nil || fl == nil {
+	if fl, err := h.AddressList(cFrom); err != nil || fl == nil {
 		fl, err = mail.ParseAddressList(acctConfig.From)
 		// realistically this blows up way before us during the config loading
 		if err != nil {
 			return nil, err
 		}
 		if fl != nil {
-			h.SetAddressList("from", fl)
+			h.SetAddressList(cFrom, fl)
 
 		}
 	}
@@ -117,6 +117,8 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	return c, nil
 }
 
+const cFrom = "from"
+
 func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 
 	c.layout = aerc.conf.Compose.HeaderLayout
@@ -134,7 +136,7 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 			}
 			c.editors[h] = e
 			switch h {
-			case "from":
+			case cFrom:
 				// Prepend From to support backtab
 				c.focusable = append([]ui.MouseableDrawableInteractive{e}, c.focusable...)
 			default:
@@ -201,7 +203,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 
 	mr, err := mail.CreateReader(templateText)
 	if err != nil {
-		return fmt.Errorf("Template loading failed: %v", err)
+		return fmt.Errorf("Template loading failed: %w", err)
 	}
 
 	// copy the headers contained in the template to the compose headers
@@ -212,7 +214,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 
 	part, err := mr.NextPart()
 	if err != nil {
-		return fmt.Errorf("Could not get body of template: %v", err)
+		return fmt.Errorf("Could not get body of template: %w", err)
 	}
 
 	c.AppendContents(part.Body)
@@ -479,7 +481,7 @@ func writeAttachment(path string, writer *mail.Writer) error {
 		// Sniff the mime type instead
 		// http.DetectContentType only cares about the first 512 bytes
 		head, err := reader.Peek(512)
-		if err != nil && err != io.EOF {
+		if err != nil && !errors.Is(err, io.EOF) {
 			return errors.Wrap(err, "Peek")
 		}
 		mimeString = http.DetectContentType(head)
@@ -720,7 +722,7 @@ func extractHumanHeaderValue(key string, h *mail.Header) string {
 	var val string
 	var err error
 	switch strings.ToLower(key) {
-	case "to", "from", "cc", "bcc":
+	case "to", cFrom, "cc", "bcc":
 		var list []*mail.Address
 		list, err = h.AddressList(key)
 		val = format.FormatAddresses(list)
@@ -747,7 +749,7 @@ func (he *headerEditor) loadValue() {
 func (he *headerEditor) storeValue() {
 	val := he.input.String()
 	switch strings.ToLower(he.name) {
-	case "to", "from", "cc", "bcc":
+	case "to", cFrom, "cc", "bcc":
 		list, err := mail.ParseAddressList(val)
 		if err == nil {
 			he.header.SetAddressList(he.name, list)

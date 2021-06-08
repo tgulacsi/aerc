@@ -277,6 +277,8 @@ func findStyleSet(stylesetName string, stylesetsDir []string) (string, error) {
 		"Can't find styleset %q in any of %v", stylesetName, stylesetsDir)
 }
 
+const cSelected = "selected"
+
 func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 	ss.reset()
 
@@ -294,7 +296,7 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 		case 2:
 			styleName, attr = tokens[0], tokens[1]
 		case 3:
-			if tokens[1] != "selected" {
+			if tokens[1] != cSelected {
 				return errors.New("Unknown modifier: " + tokens[1])
 			}
 			selectedKeys = append(selectedKeys, key)
@@ -340,7 +342,7 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 	for _, key := range selectedKeys {
 		tokens := strings.Split(key, ".")
 		styleName, modifier, attr := tokens[0], tokens[1], tokens[2]
-		if modifier != "selected" {
+		if modifier != cSelected {
 			return errors.New("Unknown modifier: " + modifier)
 		}
 
@@ -378,7 +380,7 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 		styleName, attr := tokens[0], tokens[1]
 		val := defaultSection.KeysHash()[key]
 
-		if styleName != "selected" {
+		if styleName != cSelected {
 			continue
 		}
 

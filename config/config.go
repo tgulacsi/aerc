@@ -128,7 +128,7 @@ type TriggersConfig struct {
 }
 
 type TemplateConfig struct {
-	TemplateDirs []string `ini:"template-dirs", delim:":"`
+	TemplateDirs []string `ini:"template-dirs" delim:":"`
 	QuotedReply  string   `ini:"quoted-reply"`
 	Forwards     string   `ini:"forwards"`
 }
@@ -170,8 +170,9 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 	}
 	file.NameMapper = mapName
 
-	var accounts []AccountConfig
-	for _, _sec := range file.SectionStrings() {
+	sects := file.SectionStrings()
+	accounts := make([]AccountConfig, 0, len(sects))
+	for _, _sec := range sects {
 		if _sec == "DEFAULT" {
 			continue
 		}
@@ -222,13 +223,13 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 
 		source, err := parseCredential(account.Source, account.SourceCredCmd)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid source credentials for %s: %s", _sec, err)
+			return nil, fmt.Errorf("Invalid source credentials for %s: %w", _sec, err)
 		}
 		account.Source = source
 
 		outgoing, err := parseCredential(account.Outgoing, account.OutgoingCredCmd)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid outgoing credentials for %s: %s", _sec, err)
+			return nil, fmt.Errorf("Invalid outgoing credentials for %s: %w", _sec, err)
 		}
 		account.Outgoing = outgoing
 
@@ -261,7 +262,7 @@ func parseCredential(cred, command string) (string, error) {
 	cmd.Stdin = os.Stdin
 	output, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("failed to read password: %s", err)
+		return "", fmt.Errorf("failed to read password: %w", err)
 	}
 
 	pw := strings.TrimSpace(string(output))
@@ -371,14 +372,14 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		var index int
 		if strings.Contains(sectionName, "~") {
 			index = strings.Index(sectionName, "~")
-			regex := string(sectionName[index+1:])
+			regex := sectionName[index+1:]
 			contextualUi.Regex, err = regexp.Compile(regex)
 			if err != nil {
 				return err
 			}
 		} else if strings.Contains(sectionName, "=") {
 			index = strings.Index(sectionName, "=")
-			value := string(sectionName[index+1:])
+			value := sectionName[index+1:]
 			contextualUi.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
 			if err != nil {
 				return err
@@ -663,7 +664,7 @@ func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
 	ui.style = NewStyleSet()
 	err := ui.style.LoadStyleSet(ui.StyleSetName, styleSetDirs)
 	if err != nil {
-		return fmt.Errorf("Unable to load default styleset: %s", err)
+		return fmt.Errorf("Unable to load default styleset: %w", err)
 	}
 
 	return nil

@@ -31,12 +31,12 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 		p.details.SignedBy == nil {
 
 		x := ctx.Printf(0, 0, warningStyle, "*")
-		x += ctx.Printf(x, 0, defaultStyle,
+		ctx.Printf(x, 0, defaultStyle,
 			" Signed with unknown key (%8X); authenticity unknown",
 			p.details.SignedByKeyId)
 	} else if p.details.SignatureError != nil {
 		x := ctx.Printf(0, 0, errorStyle, "Invalid signature!")
-		x += ctx.Printf(x, 0, errorStyle,
+		ctx.Printf(x, 0, errorStyle,
 			" This message may have been tampered with! (%s)",
 			p.details.SignatureError.Error())
 	} else {
@@ -44,7 +44,7 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 		ident := entity.PrimaryIdentity()
 
 		x := ctx.Printf(0, 0, validStyle, "✓ Authentic ")
-		x += ctx.Printf(x, 0, defaultStyle,
+		ctx.Printf(x, 0, defaultStyle,
 			"Signature from %s (%8X)",
 			ident.Name, p.details.SignedByKeyId)
 	}
@@ -57,7 +57,7 @@ func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
 	ident := entity.PrimaryIdentity()
 
 	x := ctx.Printf(0, y, validStyle, "✓ Encrypted ")
-	x += ctx.Printf(x, y, defaultStyle,
+	ctx.Printf(x, y, defaultStyle,
 		"To %s (%8X) ", ident.Name, p.details.DecryptedWith.PublicKey.KeyId)
 }
 

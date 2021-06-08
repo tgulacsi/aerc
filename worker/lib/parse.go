@@ -67,7 +67,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	var body models.BodyStructure
 	contentType, ctParams, err := e.Header.ContentType()
 	if err != nil {
-		return nil, fmt.Errorf("could not parse content type: %v", err)
+		return nil, fmt.Errorf("could not parse content type: %w", err)
 	}
 	mimeType, mimeSubType := splitMIME(contentType)
 	body.MIMEType = mimeType
@@ -78,7 +78,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	if cd := e.Header.Get("content-disposition"); cd != "" {
 		contentDisposition, cdParams, err := e.Header.ContentDisposition()
 		if err != nil {
-			return nil, fmt.Errorf("could not parse content disposition: %v", err)
+			return nil, fmt.Errorf("could not parse content disposition: %w", err)
 		}
 		body.Disposition = contentDisposition
 		body.DispositionParams = cdParams
@@ -87,7 +87,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	if mpr := e.MultipartReader(); mpr != nil {
 		for {
 			part, err := mpr.NextPart()
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				return &body, nil
 			} else if err != nil {
 				return nil, err
@@ -107,27 +107,27 @@ var ErrDateParse = errors.New("date parsing failed")
 func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	from, err := parseAddressList(h, "from")
 	if err != nil {
-		return nil, fmt.Errorf("could not read from address: %v", err)
+		return nil, fmt.Errorf("could not read from address: %w", err)
 	}
 	to, err := parseAddressList(h, "to")
 	if err != nil {
-		return nil, fmt.Errorf("could not read to address: %v", err)
+		return nil, fmt.Errorf("could not read to address: %w", err)
 	}
 	cc, err := parseAddressList(h, "cc")
 	if err != nil {
-		return nil, fmt.Errorf("could not read cc address: %v", err)
+		return nil, fmt.Errorf("could not read cc address: %w", err)
 	}
 	bcc, err := parseAddressList(h, "bcc")
 	if err != nil {
-		return nil, fmt.Errorf("could not read bcc address: %v", err)
+		return nil, fmt.Errorf("could not read bcc address: %w", err)
 	}
 	replyTo, err := parseAddressList(h, "reply-to")
 	if err != nil {
-		return nil, fmt.Errorf("could not read reply-to address: %v", err)
+		return nil, fmt.Errorf("could not read reply-to address: %w", err)
 	}
 	subj, err := h.Subject()
 	if err != nil {
-		return nil, fmt.Errorf("could not read subject: %v", err)
+		return nil, fmt.Errorf("could not read subject: %w", err)
 	}
 	msgID, err := h.MessageID()
 	if err != nil {
@@ -191,7 +191,7 @@ func parseDate(h *mail.Header) (time.Time, error) {
 func parseReceivedHeader(h *mail.Header) (time.Time, error) {
 	guess, err := h.Text("received")
 	if err != nil {
-		return time.Time{}, fmt.Errorf("received header not parseable: %v",
+		return time.Time{}, fmt.Errorf("received header not parseable: %w",
 			err)
 	}
 	return time.Parse(time.RFC1123Z, dateRe.FindString(guess))
@@ -227,18 +227,18 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	}
 	msg, err := message.Read(r)
 	if err != nil {
-		return nil, fmt.Errorf("could not read message: %v", err)
+		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	bs, err := ParseEntityStructure(msg)
 	if errors.As(err, new(message.UnknownEncodingError)) {
 		parseErr = err
 	} else if err != nil {
-		return nil, fmt.Errorf("could not get structure: %v", err)
+		return nil, fmt.Errorf("could not get structure: %w", err)
 	}
-	h := &mail.Header{msg.Header}
+	h := &mail.Header{Header: msg.Header}
 	env, err := parseEnvelope(h)
 	if err != nil && !errors.Is(err, ErrDateParse) {
-		return nil, fmt.Errorf("could not parse envelope: %v", err)
+		return nil, fmt.Errorf("could not parse envelope: %w", err)
 		// if only the date parsing failed we still get the rest of the
 		// envelop structure in a valid state.
 		// Date parsing errors are fairly common and it's better to be
@@ -264,7 +264,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		Flags:         flags,
 		Labels:        labels,
 		InternalDate:  recDate,
-		RFC822Headers: &mail.Header{msg.Header},
+		RFC822Headers: &mail.Header{Header: msg.Header},
 		Size:          0,
 		Uid:           raw.UID(),
 		Error:         parseErr,

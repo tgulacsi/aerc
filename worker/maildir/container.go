@@ -42,7 +42,7 @@ func (c *Container) ListFolders() ([]string, error) {
 	folders := []string{}
 	err := filepath.Walk(c.dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("Invalid path '%s': error: %v", path, err)
+			return fmt.Errorf("Invalid path '%s': error: %w", path, err)
 
 		}
 		if !info.IsDir() {
@@ -95,12 +95,12 @@ func (c *Container) Dir(name string) maildir.Dir {
 func (c *Container) UIDs(d maildir.Dir) ([]uint32, error) {
 	keys, err := d.Keys()
 	if err != nil {
-		return nil, fmt.Errorf("could not get keys for %s: %v", d, err)
+		return nil, fmt.Errorf("could not get keys for %s: %w", d, err)
 	}
 	sort.Strings(keys)
-	var uids []uint32
-	for _, key := range keys {
-		uids = append(uids, c.uids.GetOrInsert(key))
+	uids := make([]uint32, len(keys))
+	for i, key := range keys {
+		uids[i] = c.uids.GetOrInsert(key)
 	}
 	return uids, nil
 }
@@ -121,7 +121,7 @@ func (c *Container) Message(d maildir.Dir, uid uint32) (*Message, error) {
 // DeleteAll deletes a set of messages by UID and returns the subset of UIDs
 // which were successfully deleted, stopping upon the first error.
 func (c *Container) DeleteAll(d maildir.Dir, uids []uint32) ([]uint32, error) {
-	var success []uint32
+	success := make([]uint32, 0, len(uids))
 	for _, uid := range uids {
 		msg, err := c.Message(d, uid)
 		if err != nil {
@@ -139,7 +139,7 @@ func (c *Container) CopyAll(
 	dest maildir.Dir, src maildir.Dir, uids []uint32) error {
 	for _, uid := range uids {
 		if err := c.copyMessage(dest, src, uid); err != nil {
-			return fmt.Errorf("could not copy message %d: %v", uid, err)
+			return fmt.Errorf("could not copy message %d: %w", uid, err)
 		}
 	}
 	return nil

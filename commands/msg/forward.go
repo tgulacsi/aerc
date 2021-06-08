@@ -34,6 +34,8 @@ func (forward) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
+const cNewEmail = "New email"
+
 func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "AT:")
 	if err != nil {
@@ -73,7 +75,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		to := strings.Join(args[optind:], ", ")
 		tolist, err := mail.ParseAddressList(to)
 		if err != nil {
-			return fmt.Errorf("invalid to address(es): %v", err)
+			return fmt.Errorf("invalid to address(es): %w", err)
 		}
 		h.SetAddressList("to", tolist)
 	}
@@ -100,7 +102,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		composer.OnHeaderChange("Subject", func(subject string) {
 			if subject == "" {
-				tab.Name = "New email"
+				tab.Name = cNewEmail
 			} else {
 				tab.Name = subject
 			}

@@ -19,7 +19,7 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 			Error:   err,
 		}, nil)
 	} else {
-		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 		if imapw.idleStop == nil {
 			imapw.idleStop = make(chan struct{})
 		}
@@ -74,7 +74,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			Message: types.RespondTo(msg),
 			Uids:    uids,
 		}, nil)
-		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }
 
@@ -96,7 +96,7 @@ func translateSortCriterions(
 	result := make([]sortthread.SortCriterion, 0, len(cs))
 	for _, c := range cs {
 		if f, ok := sortFieldMap[c.Field]; ok {
-			result = append(result, sortthread.SortCriterion{f, c.Reverse})
+			result = append(result, sortthread.SortCriterion{Field: f, Reverse: c.Reverse})
 		}
 	}
 	return result

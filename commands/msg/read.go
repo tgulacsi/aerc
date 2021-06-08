@@ -20,12 +20,14 @@ func init() {
 }
 
 func (FlagMsg) Aliases() []string {
-	return []string{"flag", "unflag", "read", "unread"}
+	return []string{"flag", "unflag", cRead, "unread"}
 }
 
 func (FlagMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
+
+const cRead = "read"
 
 // If this was called as 'flag' or 'unflag', without the toggle (-t)
 // option, then it will flag the corresponding messages with the given
@@ -43,20 +45,20 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	// Whether to toggle the flag (true) or to enable/disable it (false)
 	var toggle bool
 	// Whether to enable (true) or disable (false) the flag
-	enable := (args[0] == "read" || args[0] == "flag")
+	enable := (args[0] == cRead || args[0] == "flag")
 	// User-readable name for the action being performed
 	var actionName string
 	// Getopt option string, varies by command name
 	var getoptString string
 	// Help message to provide on parsing failure
 	var helpMessage string
-	// Used during parsing to prevent choosing a flag muliple times
+	// Used during parsing to prevent choosing a flag multiple times
 	// A default flag will be used if this is false
 	flagChosen := false
 
-	if args[0] == "read" || args[0] == "unread" {
+	if args[0] == cRead || args[0] == "unread" {
 		flag = models.SeenFlag
-		flagName = "read"
+		flagName = cRead
 		getoptString = "t"
 		helpMessage = "Usage: " + args[0] + " [-t]"
 	} else { // 'flag' / 'unflag'

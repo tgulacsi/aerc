@@ -179,7 +179,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		tab := aerc.NewTab(composer, subject)
 		composer.OnHeaderChange("Subject", func(subject string) {
 			if subject == "" {
-				tab.Name = "New email"
+				tab.Name = cNewEmail
 			} else {
 				tab.Name = subject
 			}

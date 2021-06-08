@@ -2,6 +2,7 @@ package imap
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -167,7 +168,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			w.client.Close()
 		}
 		w.client = &imapClient{c, idle.NewClient(c), sortthread.NewSortClient(c)}
-		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
 	case *types.OpenDirectory:
@@ -257,7 +258,7 @@ func (w *IMAPWorker) Run() {
 		select {
 		case msg := <-w.worker.Actions:
 			msg = w.worker.ProcessAction(msg)
-			if err := w.handleMessage(msg); err == errUnsupported {
+			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
 				w.worker.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
 				}, nil)
